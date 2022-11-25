@@ -1,15 +1,15 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-
-import { createNoise2D } from "simplex-noise";
+import { perlin } from "./noise";
+import { math } from "./math";
 
 const camera = new THREE.PerspectiveCamera(
   70,
   window.innerWidth / window.innerHeight,
   0.01,
-  100
+  1000
 );
-camera.position.z = 10;
+camera.position.y = 500;
 
 const scene = new THREE.Scene();
 
@@ -17,6 +17,7 @@ const renderer = new THREE.WebGLRenderer({
   antialias: true,
   canvas: document.querySelector("#bg"),
 });
+
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setAnimationLoop(animation);
 document.body.appendChild(renderer.domElement);
@@ -25,49 +26,73 @@ document.body.appendChild(renderer.domElement);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.update();
 
-//const gridHelper = new THREE.GridHelper(10, 20); // size, divisions
+const gridHelper = new THREE.GridHelper(500, 256); // size, divisions
 //scene.add(gridHelper);
 
-// Land
-let geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+// Terrain Mesh
+const geometry = new THREE.PlaneGeometry(500, 500, 256, 256);
 const material = new THREE.MeshNormalMaterial();
+const terrain = new THREE.Mesh(geometry, material);
+terrain.material.side = THREE.DoubleSide;
 
-let cubes = [];
+terrain.rotateX(-Math.PI / 2);
+scene.add(terrain);
 
-const noise2D = createNoise2D();
+// Applying Noise to Terrain
 
-for (let i = -15; i < 15; i++) {
-  for (let j = -15; j < 15; j++) {
-    geometry.translate(0, 0.01, 0)
-    cubes[i] = new THREE.Mesh(geometry, material);
+function modifyTerrain() {
+  const peak = 60;
+  const smoothing = 300;
+  const verts = terrain.geometry.attributes.position.array;
 
-    //let noise = Math.pow(noise2D * 10, i);
-    let value2d = noise2D(i, j);
-    let cubeSize = value2d * 5;
-    if (cubeSize == 0){
-      cubeSize = 1;
-    }
-    cubes[i].scale.y = cubeSize;//Math.pow(value2d, 1.5);
+  for (let i = 0; i < verts.length; i += 3) {
+    verts[i + 2] = peak * Math.random();
+    // verts[i+2] = peak * perlin(verts[i]/smoothing, verts[i+1]/smoothing);
+  }
+  terrain.geometry.attributes.position.needsUpdate = true;
+  terrain.geometry.computeVertexNormals();
+}
+
+function smoothTerrain() {
+  const peak = 128;
+
+  const verts = terrain.geometry.attributes.position.array;
+
+  let b = new THREE.Vector2(0, 0);
+  //
+  for (let i = 0; i < verts.length; i += 3) {
+    // i = x, i+1 = y, i+2=z
+    let a = new THREE.Vector2(verts[i], verts[i + 1]);
+    let dist = a.distanceTo(b);
     
-    //console.log(Math.pow(value2d, 1.5))
+    let h = 1 - math.sat(dist / 250); // clamps distance between 0, 1
+    
+    h = h * h * h * (h * (h * 6 - 15) + 10);
+    
+    // get height then make it position of z axis
+    verts[i+2]= h * peak;
+    //verts[i+2]= Math.random() * peak;
 
-    cubes[i].position.x = i * 0.5;
-    cubes[i].position.z = j * 0.5;
-    scene.add(cubes[i]);
+    console.log("i:"+i, "x:" + verts[i], "y:"+verts[i + 1], "z:"+verts[i + 2]);
+  }
+
+  terrain.geometry.attributes.position.needsUpdate = true;
+  terrain.geometry.computeVertexNormals();
+}
+
+function modifyVerts2() {
+  const positionAttribute = geometry.getAttribute("position");
+
+  const vertex = new THREE.Vector3();
+
+  for (let i = 0; i < positionAttribute.count; i++) {
+    vertex.fromBufferAttribute(positionAttribute, i); // read vertex
+    // do something with vertex
+    positionAttribute.setXYZ(i, vertex.x, vertex.y, vertex.z); // write coordinates back
   }
 }
 
-function makeCube(cubes, position, height) {
-  const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-  const material = new THREE.MeshNormalMaterial();
-
-
-  for (let x=0; x < height; x++) {
-    let c = new THREE.Mesh(geometry, material);
-    c.position.y = x * 0.5;
-  }
-
-}
+smoothTerrain();
 
 // animation
 function animation(time) {

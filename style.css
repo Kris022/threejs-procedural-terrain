@@ -1,7 +1,7 @@
 * {
   margin: 0;
   padding: 0;
-  
+
 }
 
 #sceneView {
@@ -11,10 +11,19 @@
   z-index: 0;
 }
 
-#noise-preview {
-  background-color: white;
+.canvasContainer {
   top: 0;
   left: 0;
   z-index: 1;
   position: absolute;
+  display: flex;
+  flex-direction: column;
+}
+
+#noise-preview {
+  background-color: white;
+}
+
+#color-preview {
+  background-color: white;
 }

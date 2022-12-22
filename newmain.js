@@ -23,10 +23,10 @@ const ctx = canvas.getContext('2d');
 ctx.fillStyle = 'white';
 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-let scale = 60;
+let scale = 27;
 let octaves = 4;
 let presistance = 0.5;
-let lacunarity = 1.5;
+let lacunarity = 1.25;
 let seed = 100;
 let offset = { x: 0, y: 0 };
 
@@ -68,8 +68,8 @@ const gridHelper = new THREE.GridHelper(100, 10); // size, divisions
 
 const light = new THREE.DirectionalLight( 0xffffff, 0.7);
 light.position.y=100;
-light.position.x = 10;
-light.rotateX(10);
+light.position.x = 20;
+light.rotateX(15);
 light.castShadow = true
 
 scene.add(light)
@@ -137,10 +137,9 @@ function applyHeight(heightMultiplier) {
 
 }
 
-applyHeight(5);
-terrainGeo.computeVertexNormals();
-terrainGeo.castShadow = true;
-terrainGeo.receiveShadow = true;
+//applyHeight(5);
+
+
 
 const s1 = new THREE.ShaderMaterial({
 	uniforms: {},
@@ -149,10 +148,24 @@ const s1 = new THREE.ShaderMaterial({
 })
 
 const myCT = new THREE.CanvasTexture(canvas);
-//const textureMat = new THREE.MeshBasicMaterial({map: texture});
+const textureMat = new THREE.MeshBasicMaterial({map: myCT});
 
-const terrainMesh = new THREE.Mesh(terrainGeo, terrainMat);
+const disMat = new THREE.MeshStandardMaterial({
+	map: myCT,
+	displacementMap: myCT,
+	bumpMap: myCT,
+	wireframe: false,
+	displacementScale: 2.6,
+});
+
+const terrainMesh = new THREE.Mesh(terrainGeo, disMat);
 terrainMesh.rotateX((-Math.PI) / 2);
+
+terrainMesh.geometry.computeVertexNormals();
+terrainMesh.geometry.castShadow = true;
+terrainMesh.geometry.receiveShadow = true;
+
+
 scene.add(terrainMesh);
 
 // animation

@@ -1,6 +1,7 @@
 * {
   margin: 0;
   padding: 0;
+  background-color: gray;
 
 }
 
@@ -21,9 +22,7 @@
 }
 
 #noise-preview {
-  background-color: white;
 }
 
 #color-preview {
-  background-color: white;
 }

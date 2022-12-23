@@ -20,13 +20,17 @@ void main() {
 const canvas = document.getElementById('noise-preview');
 const ctx = canvas.getContext('2d');
 
+const colorCanvas = document.getElementById('color-preview');
+
+
+
 ctx.fillStyle = 'white';
 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 let scale = 27;
 let octaves = 4;
 let presistance = 0.5;
-let lacunarity = 1.25;
+let lacunarity = 1.10;
 let seed = 100;
 let offset = { x: 0, y: 0 };
 
@@ -42,6 +46,8 @@ let noiseMap = new NoiseScript().generateNoiseMap(
 );
 let colorMap = new MapGenerator(canvas.width, canvas.height, ctx, noiseMap);
 colorMap.drawNoise();
+
+colorMap.drawTexture(colorCanvas);
 
 // Scene 3D
 const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 1000);
@@ -148,17 +154,28 @@ const s1 = new THREE.ShaderMaterial({
 })
 
 const myCT = new THREE.CanvasTexture(canvas);
-const textureMat = new THREE.MeshBasicMaterial({map: myCT});
+const myColor = new THREE.CanvasTexture(colorCanvas, {
+	magFilter: THREE.NearestFilter,
+	minFilter: THREE.NearestFilter,
+	anisotropy: 1024,
 
-const disMat = new THREE.MeshStandardMaterial({
+});
+
+
+const textureMat = new THREE.MeshBasicMaterial({
 	map: myCT,
+});
+
+
+const disMat = new THREE.MeshPhongMaterial({
+	map: myColor,
 	displacementMap: myCT,
 	bumpMap: myCT,
 	wireframe: false,
-	displacementScale: 2.6,
+	displacementScale: 4.5,
 });
 
-const terrainMesh = new THREE.Mesh(terrainGeo, disMat);
+const terrainMesh = new THREE.Mesh(terrainGeo, disMat, {flatShading:true,});
 terrainMesh.rotateX((-Math.PI) / 2);
 
 terrainMesh.geometry.computeVertexNormals();

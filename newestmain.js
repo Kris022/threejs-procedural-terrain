@@ -1,24 +1,23 @@
-import { createNoise2D } from 'simplex-noise';
-import alea from 'alea';
+import { createNoise2D } from "simplex-noise";
+import alea from "alea";
 
-
-const canvas = document.getElementById('noise-preview');
+const canvas = document.getElementById("noise-preview");
 
 function drawNoise(canvas, noise) {
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = 'white';
-	ctx.fillRect(0, 0, canvas.width, canvas.height);
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "black";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   for (let i = 0; i < canvas.width; i++) {
-		for (let j = 0; j < canvas.height; j++) {
-    //  let val = noise[i][j] * 100;
+    for (let j = 0; j < canvas.width; j++) {
+      //  let val = noise[i][j] * 100;
       let val = noise[i][j] * 225;
 
-		//	ctx.fillStyle = `hsl(136, 0%,${val}%)`;
-			ctx.fillStyle = `rgb(${val}, ${val},${val})`;
-			ctx.fillRect(i, j, 1, 1);
-		}
-	}
+      //	ctx.fillStyle = `hsl(136, 0%,${val}%)`;
+      ctx.fillStyle = `rgb(${val}, ${val},${val})`;
+      ctx.fillRect(i, j, 1, 1);
+    }
+  }
 }
 
 let gen = createNoise2D(alea("seed1"));
@@ -28,22 +27,67 @@ function noise(nx, ny) {
   return gen(nx, ny) / 2 + 0.5;
 }
 
-let frequency = 1.0; // scale
-let offsetX = 1.4, offsetY = 1.5;
-let octaves = 3;
+function octave(nx, ny, octaves) {
+  let val = 0; // final noise value
+  let freq = 10; // Scale/Zoom value
+  let max = 0; // divisor
+  let amp = 1;
 
-
-
-let value = [];
-for (let y = 0; y < canvas.height; y++) {
-  value[y] = [];
-  for (let x = 0; x < canvas.width; x++) {
-    let nx = x/canvas.width - 0.5 - offsetY, ny = y/canvas.height - 0.5 + offsetX;
-    
-    value[y][x] = noise(nx * frequency, ny * frequency);
+  for (let i = 0; i < octaves; i++) {
+    val += noise(nx * freq, ny * freq) * amp;
+    max += amp;
+    amp /= 2;
+    freq *= 2;
   }
+
+  return val / max;
 }
 
+function createNoiseMap() {
+  let offsetX = 0.0,
+    offsetY = 0.0;
+  let frequency = 4.0; // scale
+  let octaves = 4;
+  let amplitude;
+  let presistance;
+  let lacunaity;
+
+  let value = [];
+  for (let y = 0; y < canvas.height; y++) {
+    value[y] = [];
+    for (let x = 0; x < canvas.width; x++) {
+      let nx = x / canvas.width - 0.5 + offsetY;
+      let ny = y / canvas.height - 0.5 + offsetX;
+
+      let d = 1 - (1 - Math.pow(nx, 2)) * (1 - Math.pow(ny, 2));
+      let e = octave(nx, ny, 3);
+
+      e = e + (0.1 - d); // /2
+
+      value[y][x] = e; // Math.pow(e, 1);//noise(nx * frequency, ny * frequency);
+    }
+  }
+
+  return value;
+}
+
+function createFllOffMap() {
+  let map = [];
+  for (let y = 0; y < canvas.height; y++) {
+    map[y] = [];
+    for (let x = 0; x < canvas.width; x++) {
+      let sampleX = x / canvas.height * 2 - 1; // get sample in range [-1, 1]
+      let sampleY = y / canvas.height * 2 - 1;
+      console.log(sampleX);
+      let val = Math.max( Math.abs(sampleX), Math.abs(sampleY));
+      map[y][x] = val;
+    }
+  }
+  return map;
+}
+
+const noiseMap = createFllOffMap();
+drawNoise(canvas, noiseMap);
 
 /*
 // Map values to range [0.0, 1.0]
@@ -76,8 +120,6 @@ for (let y = 0; y < canvas.height; y++) {
 	}
 }
 */
-drawNoise(canvas, value)
-
 /*
 
 let e = (amplitude * noise(nx * frequency, ny * frequency)) +

@@ -20,7 +20,7 @@ function drawNoise(canvas, noise) {
   }
 }
 
-let gen = createNoise2D(alea("seed1"));
+let gen = createNoise2D();
 
 function noise(nx, ny) {
   // Rescale from -1.0:+1.0 to 0.0:1.0
@@ -28,10 +28,10 @@ function noise(nx, ny) {
 }
 
 function octave(nx, ny, octaves) {
-  let val = 0; // final noise value
-  let freq = 10; // Scale/Zoom value
-  let max = 0; // divisor
-  let amp = 1;
+  let val = 0.25; // final noise value
+  let freq = 5; // Scale/Zoom value
+  let max = 1; // divisor
+  let amp = 2;
 
   for (let i = 0; i < octaves; i++) {
     val += noise(nx * freq, ny * freq) * amp;
@@ -43,7 +43,10 @@ function octave(nx, ny, octaves) {
   return val / max;
 }
 
-function createNoiseMap() {
+const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
+
+
+function createNoiseMap(falloff) {
   let offsetX = 0.0,
     offsetY = 0.0;
   let frequency = 4.0; // scale
@@ -62,8 +65,12 @@ function createNoiseMap() {
       let d = 1 - (1 - Math.pow(nx, 2)) * (1 - Math.pow(ny, 2));
       let e = octave(nx, ny, 3);
 
-      e = e + (0.1 - d); // /2
-
+    //  e = e + (0.1 - d); // /2
+    //  console.log(e);
+      if (falloff.length != 0) {
+        e = clamp(e - falloff[y][x], 0, 1)
+      }
+      
       value[y][x] = e; // Math.pow(e, 1);//noise(nx * frequency, ny * frequency);
     }
   }
@@ -72,21 +79,24 @@ function createNoiseMap() {
 }
 
 function createFllOffMap() {
+  const a = 1;
+  const b = 5;
+
   let map = [];
   for (let y = 0; y < canvas.height; y++) {
     map[y] = [];
-    for (let x = 0; x < canvas.width; x++) {
+    for (let x  = 0; x < canvas.width; x++) {
       let sampleX = x / canvas.height * 2 - 1; // get sample in range [-1, 1]
       let sampleY = y / canvas.height * 2 - 1;
-      console.log(sampleX);
       let val = Math.max( Math.abs(sampleX), Math.abs(sampleY));
+      val = Math.pow(val, a) / (Math.pow(val, a) + Math.pow( b - b * val, a));
       map[y][x] = val;
     }
   }
   return map;
 }
-
-const noiseMap = createFllOffMap();
+const falloffMap = createFllOffMap();
+const noiseMap = createNoiseMap(falloffMap);
 drawNoise(canvas, noiseMap);
 
 /*

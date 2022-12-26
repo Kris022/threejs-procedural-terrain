@@ -67,6 +67,9 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setAnimationLoop(animation);
 document.body.appendChild(renderer.domElement);
 
+scene.background = new THREE.Color(0x70a4cc);
+
+
 const terrainGeo = new THREE.PlaneGeometry(
   100,100,
   noiseCanvas.width - 1,

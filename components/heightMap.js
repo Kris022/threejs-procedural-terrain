@@ -107,7 +107,38 @@ export default class HeightMap {
     return outMin + (outMax - outMin) * proportion;
   }
 
-  
+  gradientFalloff() {
+    let intensity = 200; // color intensity
+    // get canvas
+    const canvas = document.getElementById("color-preview");
+    const ctx = canvas.getContext("2d");
+
+    // cetner point
+    let x2 = canvas.width / 2;
+    let y2 = canvas.height / 2;
+
+    // draw gradient
+    let map = [];
+    for (let y = 0; y < this.height; y++) {
+      map[y] = [];
+      for (let x = 0; x < this.width; x++) {
+        let a = x - x2;
+        let b = y - y2;
+
+        let dist = Math.sqrt(a * a + b * b);
+        let c = (dist * 255 / 135);
+        c = this.mapRange(c, 0, 255, 0, 1);
+        map[y][x] = c;
+         /*  
+        ctx.fillStyle = `rgb(${c},${c},${c})`;
+        ctx.fillRect(x, y, 1, 1);
+        */
+      }
+    }
+
+    // return data
+    return map;
+  }
 
   drawColorMap(canvas, noise) {
     const ctx = canvas.getContext("2d");

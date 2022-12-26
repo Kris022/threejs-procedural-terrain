@@ -1,20 +1,22 @@
 import { createNoise2D } from "simplex-noise";
 import alea from "alea";
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';1
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { GUI } from 'dat.gui';
 
 const canvas = document.getElementById("noise-preview");
 
 let gen = createNoise2D(alea(""));
 const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
+
 function noise(nx, ny) {
   // Rescale from -1.0:+1.0 to 0.0:1.0
   return gen(nx, ny) / 2 + 0.5;
 }
 
 function octave(nx, ny, octaves) {
-  let val = 0.15; // softness
-  let freq = 2.75; // Scale/Zoom value/mountains
+  let val = 0; // softness
+  let freq = 3; // Scale/Zoom value/mountains
   let max = 1; // divisor
   let amp = 1;
 
@@ -45,7 +47,7 @@ function createNoiseMap(falloff) {
       let ny = y / canvas.height - 0.5 + offsetX;
 
       let d = 1 - (1 - Math.pow(nx, 2)) * (1 - Math.pow(ny, 2));
-      let e = octave(nx, ny, 3);
+      let e = octave(nx, ny, 6);
 
     //  e = e + (0.1 - d); // /2
     //  console.log(e);
@@ -106,19 +108,24 @@ function map(val, smin, smax, emin, emax) {
 function applyNoiseToMesh(mesh, data) {
   const verts = mesh.geometry.attributes.position.array;
   let vertIndex = 0;
+  const heightMultiplier = 10; // 
   
 	for (let j = 0; j < data.height; j++) {
 		for (let i = 0; i < data.width; i++) {
 			const n = j * data.height + i;
 			const col = data.data[n * 4]; // the red channel
 			let newZ = map(col, 0, 255, -10, 10); // map from 0:255 to -10:10 and set to vertez z
-
-			if (newZ > 2.5) newZ *= 1.3; // exaggerate the peaks
-
+			newZ *= heightMultiplier; // exaggerate the peaks
+			//if (newZ > -10) newZ *= heightMultiplier; // exaggerate the peaks
+      
 			verts[vertIndex + 2] = newZ;
 			vertIndex += 3;
 		}
 	}
+
+  // restore mesh position to origin 
+  mesh.position.y += heightMultiplier;
+
 }
 
 // Scene 3D
@@ -147,9 +154,12 @@ const data = drawNoise(canvas, noiseMap);
 
 // Plane Geometry
 const geo = new THREE.PlaneGeometry(data.width, data.height, data.width - 1, data.height - 1);
+
+const canvasTexture = new THREE.CanvasTexture(canvas);
+
 const mat = new THREE.MeshPhongMaterial( {
   wireframe: false,
-  flatShading: false,
+  flatShading: true,
 });
 
 const terrain = new THREE.Mesh( geo, mat );
@@ -165,7 +175,9 @@ terrain.rotateX((-Math.PI) / 2);
 scene.add(terrain);
 
 
-
+const gui = new GUI({name: "Noise"});
+const noiseFolder = gui.addFolder('Noise');
+// obj, prop name, min, max, step
 
 // Helpers
 const controls = new OrbitControls(camera, renderer.domElement); // new FirstPersonControls(camera, renderer.domElement); // new OrbitControls( camera, renderer.domElement ); // new FlyControls( camera, renderer.domElement );

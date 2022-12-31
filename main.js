@@ -1,49 +1,123 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import NoiseScript from './components/noiseScript';
-import MapGenerator from './components/mapGenerator';
+import { createNoise2D } from 'simplex-noise';
+import alea from 'alea';
 
-const _vs = `
-void main() {
-	gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-}
-`;
-
-const _fs = `
-varying float vAmount;
-void main() {
-	gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
-}
-`;
-
-// Noise Preview canvas
 const canvas = document.getElementById('noise-preview');
-const ctx = canvas.getContext('2d');
+const canvas2 = document.getElementById('color-preview');
 
-ctx.fillStyle = 'white';
-ctx.fillRect(0, 0, canvas.width, canvas.height);
+const noiseGen = createNoise2D(alea('hello'));
 
-let scale = 60;
-let octaves = 4;
-let presistance = 0.5;
-let lacunarity = 1.5;
-let seed = 100;
-let offset = { x: 0, y: 0 };
+function noise(nx, ny) {
+	// Rescale from -1.0:+1.0 to 0.0:1.0
+	return noiseGen(nx, ny) / 2 + 0.5;
+}
 
-let noiseMap = new NoiseScript().generateNoiseMap(
-	canvas.width,
-	canvas.height,
-	scale,
-	octaves,
-	presistance,
-	lacunarity,
-	seed,
-	offset
-);
-let colorMap = new MapGenerator(canvas.width, canvas.height, ctx, noiseMap);
-colorMap.drawNoise();
+// Creates noise map
+function createNoiseMap(size, offsetX = 0, offsetY = 0) {
+	let value = [];
+	const freq = 3;
 
-// Scene 3D
+	for (let y = 0; y < size; y++) {
+		value[y] = [];
+		for (let x = 0; x < size; x++) {
+			let nx = (x / size - 0.5) * freq + offsetX;
+			let ny = (y / size - 0.5) * freq + offsetY;
+			value[y][x] = noise(nx, ny);
+		}
+	}
+	return value;
+}
+
+// Draws noise on canvas
+function drawNoise(noiseMap, canvas) {
+	// Get canvas context
+	const ctx = canvas.getContext('2d');
+	// map color to pixel on the canvas
+	for (let y = 0; y < noiseMap.length; y++) {
+		for (let x = 0; x < noiseMap[y].length; x++) {
+			let val = noiseMap[y][x] * 255;
+			ctx.fillStyle = `rgb(${val}, ${val}, ${val})`; // set colors value
+			ctx.fillRect(x, y, 1, 1);
+		}
+	}
+}
+
+// Draws texture on canvas
+function createTexture(noiseMap) {
+	// Get canvas context
+	const textureCanvas = document.createElement('canvas');
+	textureCanvas.width = 100;
+	textureCanvas.height = 100;
+
+	const ctx = textureCanvas.getContext('2d');
+
+	// Biomes
+	const groundColor = 'rgb(98, 158, 41)';
+	const mountainColor = 'rgb(135, 144, 150)';
+	const sand = 'rgb(230, 221, 142)';
+	const water = 'rgb(74, 133, 217)';
+
+	// map color to pixel on the canvas
+	for (let y = 0; y < noiseMap.length; y++) {
+		for (let x = 0; x < noiseMap[y].length; x++) {
+			let val = noiseMap[y][x];
+			if (val > 0.6) {
+				ctx.fillStyle = mountainColor;
+			} else if (val > 0.4) {
+				ctx.fillStyle = sand;
+			} else if (val > 0.1) {
+				ctx.fillStyle = groundColor;
+			} else {
+				ctx.fillStyle = water;
+			}
+
+			ctx.fillRect(x, y, 1, 1);
+		}
+	}
+
+	return textureCanvas;
+}
+
+
+// Maps noise to mesh
+function mapToMesh(noiseMap) {
+	const chunkSize = noiseMap.length;
+
+	const geo = new THREE.PlaneGeometry(100, 100, chunkSize - 1, chunkSize - 1);
+	const texture = new THREE.CanvasTexture(createTexture(noiseMap));
+	const mat = new THREE.MeshPhongMaterial({
+		map: texture,
+		wireframe: false,
+		flatShading: true,
+	});
+
+	const mesh = new THREE.Mesh(geo, mat);
+	mesh.rotateX((-Math.PI) / 2);
+
+	const verts = mesh.geometry.attributes.position.array;
+	let vertIndex = 0;
+
+	for (let j = 0; j < chunkSize; j++) {
+		for (let i = 0; i < chunkSize; i++) {
+			let newZ = noiseMap[j][i];
+
+			verts[vertIndex + 2] = newZ * 10;
+			vertIndex += 3;
+		}
+	}
+
+	mesh.receiveShadow = true;
+	mesh.castShadow = true;
+
+	return mesh;
+}
+
+//functon create chunk(x, y, )
+// new noise map
+// map to mesh
+
+// ------------------------------------- Scene 3D -------------------------------------
 const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 1000);
 camera.position.y = 150;
 
@@ -54,106 +128,41 @@ const renderer = new THREE.WebGLRenderer({
 	canvas: document.querySelector('#sceneView'),
 });
 
+renderer.shadowMap.enabled = true;
+
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setAnimationLoop(animation);
 document.body.appendChild(renderer.domElement);
 
-scene.background = new THREE.Color(0x70a4cc);
+const noiseMap = createNoiseMap(100);
+drawNoise(noiseMap, canvas);
 
-// Helpers
+const terrain = mapToMesh(noiseMap);
+scene.add(terrain);
+// 2.98 = 100 segments
+let n2 = createNoiseMap(100, 2.98);
+
+const terrain2 = mapToMesh(n2);
+terrain2.position.setX(99.9);
+scene.add(terrain2);
+
+let n3 = createNoiseMap(100, 0, -2.98);
+const terrain3 = mapToMesh(n3);
+terrain3.position.setZ(-100);
+scene.add(terrain3);
+
+// ------------------------ Helpers ------------------------
 const controls = new OrbitControls(camera, renderer.domElement); // new FirstPersonControls(camera, renderer.domElement); // new OrbitControls( camera, renderer.domElement ); // new FlyControls( camera, renderer.domElement );
 controls.update();
-const gridHelper = new THREE.GridHelper(100, 10); // size, divisions
-//scene.add(gridHelper);
 
-const light = new THREE.DirectionalLight( 0xffffff, 0.7);
-light.position.y=100;
-light.position.x = 10;
-light.rotateX(10);
-light.castShadow = true
-
-scene.add(light)
-const helper = new THREE.DirectionalLightHelper( light, 5 );
-scene.add( helper );
-
-
-const terrainGeo = new THREE.PlaneGeometry(100, 100, 99, 99); // 10,000 vertices 99
-terrainGeo.normalsNeedUpdate = true;
-//const terrainMat = new THREE.MeshNormalMaterial({ side: THREE.DoubleSide, wireframe: true });
-const terrainMat = new THREE.MeshPhysicalMaterial( {
-    clearcoat: 0.8,
-    clearcoatRoughness: 1.0,
-    metalness: 0,
-    roughness: 0.5,
-    color: 0xFFFFFF,
-    normalScale: new THREE.Vector2( 0.15, 0.15 )
-  } );
-//const terrainMat = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, wireframe: false });
-
-
-
-// Get verticies
-function debugVerts() {
-	//	console.log(noiseMap.length*noiseMap[0].length);
-
-	let verts = terrainMesh.geometry.attributes.position.array; // get vertecies of plane
-	console.log(verts.length / 3);
-	let x = 3;
-	let y = x + 1;
-	let z = x + 2;
-	console.log('Vert x:' + verts[0] + ' y:' + verts[1] + ' z:' + verts[2]);
-	verts[z] = 10;
-	console.log('Vert x:' + verts[0] + ' y:' + verts[1] + ' z:' + verts[2]);
-	/*	for (let i = 0; i < verts.length; i = i + 3) {
-		verts[i + 2] *= heightMultiplier; // z cooridante of vertex
-	}
-	*/
-}
-
-function applyHeight(heightMultiplier) {
-	let verts = terrainGeo.attributes.position.array; // get vertecies of plane
-
-	let vertexIndex = 0;
-
-	let maxHeight = Number.NEGATIVE_INFINITY;
-
-	for (let y = 0; y < noiseMap.length; y++) {
-		for (let x = 0; x < noiseMap[y].length; x++) {
-			if (noiseMap[y][x] > maxHeight) {
-				maxHeight = noiseMap[y][x];
-			}
-			let newZ = noiseMap[y][x]
-			if (noiseMap[y][x] > 10) {
-				newZ = 10;
-			}
-			else if (newZ < -10) {
-				newZ = 5;
-			}
-			verts[vertexIndex + 2] = newZ;
-
-			vertexIndex += 3; // vindex+2 = z coordinate of vertex
-		}
-	}
-
-}
-
-applyHeight(5);
-terrainGeo.computeVertexNormals();
-terrainGeo.castShadow = true;
-terrainGeo.receiveShadow = true;
-
-const s1 = new THREE.ShaderMaterial({
-	uniforms: {},
-	vertexShader: _vs,
-	fragmentShader: _fs,
-})
-
-const myCT = new THREE.CanvasTexture(canvas);
-//const textureMat = new THREE.MeshBasicMaterial({map: texture});
-
-const terrainMesh = new THREE.Mesh(terrainGeo, terrainMat);
-terrainMesh.rotateX((-Math.PI) / 2);
-scene.add(terrainMesh);
+const light = new THREE.DirectionalLight(0xffffff, 0.5);
+light.position.y = 50;
+light.position.x = 20;
+light.rotateX(15);
+light.castShadow = true;
+scene.add(light);
+const helper = new THREE.DirectionalLightHelper(light, 10);
+scene.add(helper);
 
 // animation
 function animation(time) {

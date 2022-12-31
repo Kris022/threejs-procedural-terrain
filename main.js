@@ -80,22 +80,16 @@ function createTexture(noiseMap) {
 		for (let x = 0; x < noiseMap[y].length; x++) {
 			let val = noiseMap[y][x];
 
-			if (val < 0.002) {
+			if (val < 0.005) {
 				ctx.fillStyle = water;
-			} else if (val < 0.03) {
+			} else if (val < 0.009) {
 				ctx.fillStyle = sand1;
-			} else if (val < 0.08) {
-				ctx.fillStyle = sand2;
-			} else if (val < 0.1) {
-				ctx.fillStyle = sand3;
-			} else if (val < 0.15) {
+			} else if (val < 0.05) {
 				ctx.fillStyle = grass1;
-			} else if (val < 0.45) {
+			} else if (val < 0.12) {
 				ctx.fillStyle = grass2;
-			} else if (val < 0.55) {
-				ctx.fillStyle = rock1;
-			} else if (val < 0.65) {
-				ctx.fillStyle = rock2;
+			}  else if (val < 0.2) {
+				ctx.fillStyle = rock1; // gray
 			} else {
 				ctx.fillStyle = snow;
 			}

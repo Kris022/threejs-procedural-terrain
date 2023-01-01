@@ -43,7 +43,7 @@ function createNoiseMap(size, offsetX = 0, offsetY = 0) {
   return value;
 }
 
-// Draws noise on canvas
+// Draws noise on canvas for debuging
 function drawNoise(noiseMap, canvas) {
   // Get canvas context
   const ctx = canvas.getContext("2d");
@@ -59,10 +59,11 @@ function drawNoise(noiseMap, canvas) {
 
 // Draws texture on canvas
 function createTexture(noiseMap) {
+  const chunkSize = noiseMap.length;
   // Get canvas context
   const textureCanvas = document.createElement("canvas");
-  textureCanvas.width = 100;
-  textureCanvas.height = 100;
+  textureCanvas.width = chunkSize;
+  textureCanvas.height = chunkSize;
 
   const ctx = textureCanvas.getContext("2d");
 
@@ -104,10 +105,15 @@ function createTexture(noiseMap) {
 }
 
 // Maps noise to mesh
-function mapToMesh(noiseMap) {
+function mapToMesh(noiseMap, bumpScale=10) {
   const chunkSize = noiseMap.length;
 
-  const geo = new THREE.PlaneGeometry(100, 100, chunkSize - 1, chunkSize - 1);
+  const geo = new THREE.PlaneGeometry(
+    chunkSize,
+    chunkSize,
+    chunkSize - 1,
+    chunkSize - 1
+  );
   const texture = new THREE.CanvasTexture(createTexture(noiseMap));
   const mat = new THREE.MeshPhongMaterial({
     map: texture,
@@ -125,13 +131,14 @@ function mapToMesh(noiseMap) {
     for (let i = 0; i < chunkSize; i++) {
       let newZ = noiseMap[j][i];
 
-      verts[vertIndex + 2] = newZ * 10;
+      verts[vertIndex + 2] = newZ * bumpScale;
       vertIndex += 3;
     }
   }
 
   mesh.receiveShadow = true;
   mesh.castShadow = true;
+  mesh.position.z = 0;
 
   return mesh;
 }
@@ -163,21 +170,11 @@ renderer.setAnimationLoop(animation);
 document.body.appendChild(renderer.domElement);
 
 const noiseMap = createNoiseMap(100);
-drawNoise(noiseMap, canvas);
-
-const terrain = mapToMesh(noiseMap);
+//drawNoise(noiseMap, canvas);
+const terrain = mapToMesh(noiseMap, 10);
 scene.add(terrain);
+
 // 2.98 = 100 segments
-let n2 = createNoiseMap(100, 4.95);
-
-const terrain2 = mapToMesh(n2);
-terrain2.position.setX(99.9);
-scene.add(terrain2);
-
-let n3 = createNoiseMap(100, 0, -4.95);
-const terrain3 = mapToMesh(n3);
-terrain3.position.setZ(-100);
-scene.add(terrain3);
 
 // load once and duplicate so its faster
 function loadTree() {
@@ -210,7 +207,7 @@ cube.position.setY(5);
 scene.add(cube);
 
 // ------------------------ Helpers ------------------------
-
+/*
 document.onkeydown = function (e) {
 	if (e.key == "ArrowUp") {
 		cube.position.z -= 1;
@@ -227,7 +224,7 @@ document.onkeydown = function (e) {
 	camera.position.x = cube.position.x;
 
 }
-
+*/
 const controls = new OrbitControls(camera, renderer.domElement); // new FirstPersonControls(camera, renderer.domElement); // new OrbitControls( camera, renderer.domElement ); // new FlyControls( camera, renderer.domElement );
 controls.update();
 

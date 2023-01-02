@@ -64,7 +64,7 @@ scene.add(cube);
 
 // ------------------------ Helpers ------------------------
 document.addEventListener("keydown", onKeyDown);
-const speed = 0.8;
+const speed = 1.2;
 function onKeyDown(e) {
   if (e.key == "ArrowUp") {
     cube.position.z -= speed;
@@ -78,6 +78,7 @@ function onKeyDown(e) {
   camera.position.z = cube.position.z;
   camera.position.x = cube.position.x;
   chunkManager.isOutOfBounds();
+  camera.lookAt(cube.position);
 }
 
 const controls = new OrbitControls(camera, renderer.domElement); // new FirstPersonControls(camera, renderer.domElement); // new OrbitControls( camera, renderer.domElement ); // new FlyControls( camera, renderer.domElement );

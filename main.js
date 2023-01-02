@@ -31,7 +31,7 @@ const camera = new THREE.PerspectiveCamera(
 camera.position.y = 100;
 
 const scene = new THREE.Scene();
-
+scene.background = new THREE.Color(0x70a4cc);
 const renderer = new THREE.WebGLRenderer({
   antialias: true,
   canvas: document.querySelector("#sceneView"),

@@ -49,8 +49,7 @@ document.body.appendChild(renderer.domElement);
 
 // chunk size = 100
 // noise offset = 4.95
-const m = new TerrainChunk();
-scene.add(m.mesh);
+
 
 const chunkManager = new ChunkManager(camera, scene);
 
@@ -77,7 +76,7 @@ function onKeyDown(e) {
   }
   camera.position.z = cube.position.z;
   camera.position.x = cube.position.x;
-  chunkManager.isOutOfBounds();
+  chunkManager.manageChunks();
   camera.lookAt(cube.position);
 }
 

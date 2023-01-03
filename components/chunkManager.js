@@ -5,31 +5,42 @@ export default class ChunkManager {
   constructor(camera, scene) {
     this.camera = camera; // reference to the camera
     this.scene = scene;
-    this.chunks = [{ x: 0, y: 0 }]; // stores cooridnates of existing chunks
+    this.chunks = []; // stores cooridnates of existing chunks
 
-    this.noiseOffset = 4.95;
+    // chunk size 100 = offset 4.95
+    // chunk size 256 = offset 4.98
+
+    this.chunkSize = 256;
+    this.noiseOffset = 4.98;
+    this.bumpScale = 15;
   }
 
   // checks if camera is out of bounds
-  isOutOfBounds() {
+  manageChunks() {
     // check camera position in frame
     // if position is new then add a new chunk
-    let camX = Math.round(this.camera.position.x / 100);
-    let camZ = Math.round(this.camera.position.z / 100); // when looking from above acts as y cooridante
+    let camX = Math.round(this.camera.position.x / this.chunkSize);
+    let camZ = Math.round(this.camera.position.z / this.chunkSize); // when looking from above acts as y cooridante
 
-    if (this.chunks.find((obj) => obj.x == camX && obj.y == camZ)) {
-      console.log("chunk exists");
-    } else {
-      const chunk = new TerrainChunk(
-        camX * 100,
-        camZ * 100,
-        camX * this.noiseOffset,
-        camZ * this.noiseOffset
-      );
-      this.scene.add(chunk.mesh);
+    for (let x = camX - 1; x < camX + 2; x++) {
+      for (let y = camZ - 1; y < camZ + 2; y++) {
+        // If chunk doesnt exist at current cooridnates
+        if (!this.chunks.find((obj) => obj.x == x && obj.y == y)) {
 
-      this.chunks.push({ x: camX, y: camZ });
-      console.log("adding chunk");
+          // Add chunk
+          const chunk = new TerrainChunk(
+            x * this.chunkSize,
+            y * this.chunkSize,
+            x * this.noiseOffset,
+            y * this.noiseOffset,
+            this.chunkSize,
+            this.bumpScale
+          );
+          this.scene.add(chunk.mesh);
+
+          this.chunks.push({ x: x, y: y });
+        }
+      }
     }
-  }
+  } // end of function
 }

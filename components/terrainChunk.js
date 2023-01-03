@@ -45,6 +45,7 @@ export default class TerrainChunk {
         value[y][x] = e;
       }
     }
+//    this.drawNoise(value);
     return value;
   }
 
@@ -128,6 +129,21 @@ export default class TerrainChunk {
     mesh.position.z = 0;
   
     return mesh;
+  }
+
+  // debuging
+  drawNoise(noiseMap) {
+    // Get canvas context
+    const canvas = document.getElementById("noise-preview");
+    const ctx = canvas.getContext("2d");
+    // map color to pixel on the canvas
+    for (let y = 0; y < noiseMap.length; y++) {
+      for (let x = 0; x < noiseMap[y].length; x++) {
+        let val = noiseMap[y][x] * 255;
+        ctx.fillStyle = `rgb(${val}, ${val}, ${val})`; // set colors value
+        ctx.fillRect(x, y, 1, 1);
+      }
+    }
   }
 
 }

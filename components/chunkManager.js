@@ -13,9 +13,9 @@ export default class ChunkManager {
     this.noiseOffset = 4.95;
     this.bumpScale = 15;
 
-    this.queue = [];
+    this.queue = []; // chunkQueue
 
-    this.manageChunks();
+    this.buildStarterChunks();
   }
 
   // checks if camera is out of bounds
@@ -25,27 +25,50 @@ export default class ChunkManager {
     let camX = Math.round(this.camera.position.x / this.chunkSize);
     let camZ = Math.round(this.camera.position.z / this.chunkSize); // when looking from above acts as y cooridante
 
-    for (let x = camX - 1; x < camX + 2; x++) {
-      for (let y = camZ - 1; y < camZ + 2; y++) {
+    for (let x = camX - 4; x < camX + 5; x++) {
+      for (let y = camZ - 4; y < camZ + 5; y++) {
         // If chunk doesnt exist at current cooridnates
         if (!this.chunks.find((obj) => obj.x == x && obj.y == y)) {
+          // add all chunks to be built to the queue
+          this.queue.push({ x: x, y: y });
+          // call buildQueue every frame to build any queued chunks
 
-          // Add chunk
-          const chunk = new TerrainChunk(
-            x * this.chunkSize,
-            y * this.chunkSize,
-            x * this.noiseOffset,
-            y * this.noiseOffset,
-            this.chunkSize,
-            this.bumpScale
-          );
-          this.scene.add(chunk.mesh);
-
-          this.chunks.push({ x: x, y: y });
+         // this.addChunk(x, y);
         }
       }
     }
   } // end of function
+
+  addChunk(cx, cy) {
+    // Add chunk
+    const chunk = new TerrainChunk(
+      cx * this.chunkSize,
+      cy * this.chunkSize,
+      cx * this.noiseOffset,
+      cy * this.noiseOffset,
+      this.chunkSize,
+      this.bumpScale
+    );
+    this.scene.add(chunk.mesh);
+
+    this.chunks.push({ x: cx, y: cy });
+  }
+
+  processChunkQueue() {
+    // Check if the queue is empty
+    if (this.queue.length === 0) {
+      return;
+    }
+  
+    // Get the next chunk from the queue
+    const chunk = this.queue.shift();
+  
+    // Generate the chunk
+    this.addChunk(chunk.x, chunk.y);
+  
+    // Schedule the next chunk to be processed in the next frame
+    requestAnimationFrame(this.processChunkQueue);
+  }
 
   // add chunks in queue
   buildChunksInQueue(queue) {
@@ -65,18 +88,9 @@ export default class ChunkManager {
   }
 
   buildStarterChunks() {
-    for (let x = -2; x < 2; x++) {
-      for (let y = -2; y < 2; y++) {
-        const chunk = new TerrainChunk(
-          x * this.chunkSize,
-          y * this.chunkSize,
-          x * this.noiseOffset,
-          y * this.noiseOffset,
-          this.chunkSize,
-          this.bumpScale
-        );
-        this.scene.add(chunk.mesh);
-        this.chunks.push({ x: x, y: y });
+    for (let x = -1; x < 2; x++) {
+      for (let y = -1; y < 2; y++) {
+        this.addChunk(x, y);
       }
     }
   }

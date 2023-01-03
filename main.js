@@ -94,5 +94,6 @@ const helper = new THREE.DirectionalLightHelper(light, 10);
 
 // animation
 function animation(time) {
+  chunkManager.processChunkQueue();
   renderer.render(scene, camera);
 }

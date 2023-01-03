@@ -22,25 +22,19 @@ export default class ChunkManager {
     let camX = Math.round(this.camera.position.x / this.chunkSize);
     let camZ = Math.round(this.camera.position.z / this.chunkSize); // when looking from above acts as y cooridante
 
-    for (let x = camX - 1; x < camX + 2; x++) {
-      for (let y = camZ - 1; y < camZ + 2; y++) {
-        // If chunk doesnt exist at current cooridnates
-        if (!this.chunks.find((obj) => obj.x == x && obj.y == y)) {
+    if (!this.chunks.find((obj) => obj.x == camX && obj.y == camZ)) {
+      // Add chunk
+      const chunk = new TerrainChunk(
+        camX * this.chunkSize,
+        camZ * this.chunkSize,
+        camX * this.noiseOffset,
+        camZ * this.noiseOffset,
+        this.chunkSize,
+        this.bumpScale
+      );
+      this.scene.add(chunk.mesh);
 
-          // Add chunk
-          const chunk = new TerrainChunk(
-            x * this.chunkSize,
-            y * this.chunkSize,
-            x * this.noiseOffset,
-            y * this.noiseOffset,
-            this.chunkSize,
-            this.bumpScale
-          );
-          this.scene.add(chunk.mesh);
-
-          this.chunks.push({ x: x, y: y });
-        }
-      }
+      this.chunks.push({ x: camX, y: camZ });
     }
   } // end of function
 }

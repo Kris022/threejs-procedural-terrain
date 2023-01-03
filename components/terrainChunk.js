@@ -51,9 +51,7 @@ export default class TerrainChunk {
   createTexture(noiseMap) {
     const chunkSize = noiseMap.length;
     // Get canvas context
-    const textureCanvas = document.createElement("canvas");
-    textureCanvas.width = chunkSize;
-    textureCanvas.height = chunkSize;
+    const textureCanvas = new OffscreenCanvas(chunkSize, chunkSize);
   
     const ctx = textureCanvas.getContext("2d");
   

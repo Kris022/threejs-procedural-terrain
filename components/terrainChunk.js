@@ -126,7 +126,6 @@ export default class TerrainChunk {
   
     mesh.receiveShadow = true;
     mesh.castShadow = true;
-    mesh.position.z = 0;
   
     return mesh;
   }

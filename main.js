@@ -50,7 +50,6 @@ document.body.appendChild(renderer.domElement);
 // chunk size = 100
 // noise offset = 4.95
 
-
 const chunkManager = new ChunkManager(camera, scene);
 
 const cube = new THREE.Mesh(
@@ -77,7 +76,7 @@ function onKeyDown(e) {
   camera.position.z = cube.position.z;
   camera.position.x = cube.position.x;
   chunkManager.manageChunks();
-  camera.lookAt(cube.position);
+ // camera.lookAt(cube.position);
 }
 
 const controls = new OrbitControls(camera, renderer.domElement); // new FirstPersonControls(camera, renderer.domElement); // new OrbitControls( camera, renderer.domElement ); // new FlyControls( camera, renderer.domElement );
@@ -95,5 +94,6 @@ const helper = new THREE.DirectionalLightHelper(light, 10);
 // animation
 function animation(time) {
   chunkManager.processChunkQueue();
+
   renderer.render(scene, camera);
 }

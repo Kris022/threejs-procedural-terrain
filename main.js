@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import ChunkManager from "./components/chunkManager";
+import Airplane from "./components/Airplane";
 
 const canvas = document.getElementById("noise-preview");
 const canvas2 = document.getElementById("color-preview");
@@ -27,7 +28,7 @@ const camera = new THREE.PerspectiveCamera(
   0.01,
   1000
 );
-camera.position.y = 15;
+camera.position.y = 50;
 //camera.rotation.x = -0.5;
 
 const scene = new THREE.Scene();
@@ -42,46 +43,40 @@ renderer.shadowMap.enabled = true;
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-// 2.98 = 100 segments
-// noise 100 = offset = 4.95
-// noise 256 offset = 4.98
+const player = new Airplane();
+scene.add(player.mesh);
 
-// chunk size = 100
-// noise offset = 4.95
-
-
-const cube = new THREE.Mesh(
-  new THREE.BoxGeometry(5, 5, 5),
-  new THREE.MeshBasicMaterial({ color: "yellow" })
-  );
-  
-  cube.position.setY(5);
-  scene.add(cube);
-  const chunkManager = new ChunkManager(cube, scene);
+const chunkManager = new ChunkManager(player.mesh, scene);
 
 // ------------------------ Helpers ------------------------
 document.addEventListener("keydown", onKeyDown);
-const speed = 1.2;
+document.addEventListener("keyup", onKeyUp);
 function onKeyDown(e) {
   if (e.key == "ArrowUp") {
-    cube.position.z -= speed;
+    player.forward = true;
   } else if (e.key == "ArrowDown") {
-    cube.position.z += speed;
+    player.backward = true;
   } else if (e.key == "ArrowLeft") {
-    cube.position.x -= speed;
-    //camera.rotation.y += 0.1;
+    player.left = true;
   } else if (e.key == "ArrowRight") {
-    cube.position.x += speed;
-   // camera.rotation.y -= 0.1;
+    player.right = true;
   }
- // camera.position.z = cube.position.z;
- // camera.position.x = cube.position.x;
-  chunkManager.manageChunks();
 }
 
-const controls = new OrbitControls(camera, renderer.domElement); 
-controls.update();
+function onKeyUp(e) {
+  if (e.key == "ArrowUp") {
+    player.forward = false;
+  } else if (e.key == "ArrowDown") {
+    player.backward = false;
+  } else if (e.key == "ArrowLeft") {
+    player.left = false;
+  } else if (e.key == "ArrowRight") {
+    player.right = false;
+  }
+}
 
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.update();
 
 const light = new THREE.DirectionalLight(0xffffff, 0.5);
 light.position.y = 50;
@@ -92,13 +87,22 @@ scene.add(light);
 const helper = new THREE.DirectionalLightHelper(light, 10);
 //scene.add(helper);
 
+/* 
+chunkManager.manageChunks();
 
+chunkManager.processChunkQueue();
+*/
+
+let currentTime = Date.now();
 
 function animate() {
   requestAnimationFrame(animate);
-  chunkManager.processChunkQueue();
+  let elapsedTime = Date.now() - currentTime;
+  // Update the current time
+  currentTime = Date.now();
+
+  player.update(elapsedTime);
 
   renderer.render(scene, camera);
 }
-
 animate();

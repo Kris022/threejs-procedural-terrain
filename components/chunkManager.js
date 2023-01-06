@@ -63,6 +63,10 @@ export default class ChunkManager {
         Math.abs(chunk.y - camZ) > this.chunkRemovalRange
     );
 
+    if (removeQueue.length === 0) {
+      return;
+    }
+
     // Remove old chunks from the chunks array
     this.chunks = this.chunks.filter((item) => !removeQueue.includes(item));
 

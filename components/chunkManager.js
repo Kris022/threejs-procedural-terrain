@@ -12,7 +12,7 @@ export default class ChunkManager {
     */
     this.chunkSize = 100;
     this.noiseOffset = 4.95;
-    this.bumpScale = 25;
+    this.bumpScale = 10;
 
     this.chunkQueue = []; // Holds chunks to be built
 
@@ -78,8 +78,12 @@ export default class ChunkManager {
 
   processChunkQueue() {
     // Check if the queue is empty
-    // ERROR is the chunkQueue getting removed by shift?
-    if (this.chunkQueue.length === 0) {
+    //When length is 0 undefined
+    try {
+      if (this.chunkQueue.length === 0) {
+        return;
+      }
+    } catch (error) {
       return;
     }
 

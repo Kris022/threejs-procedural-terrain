@@ -79,14 +79,14 @@ controls.target = player.mesh.position;
 controls.enablePan = false; // Disable panning
 controls.maxDistance = 15;
 
-const light = new THREE.DirectionalLight(0xffffff, 0.5);
+const light = new THREE.DirectionalLight(0xffffff, 0.7);
 light.position.y = 50;
 light.position.x = 20;
 light.rotateX(15);
-light.castShadow = true;
 scene.add(light);
 const helper = new THREE.DirectionalLightHelper(light, 10);
 //scene.add(helper);
+
 
 /* 
 chunkManager.manageChunks();

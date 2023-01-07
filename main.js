@@ -22,14 +22,8 @@ function drawNoise(noiseMap, canvas) {
 }
 
 // ------------------------------------- Scene 3D -------------------------------------
-const camera = new THREE.PerspectiveCamera(
-  70,
-  window.innerWidth / window.innerHeight,
-  0.01,
-  1000
-);
+const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 1000);
 camera.position.y = 50;
-//camera.rotation.x = -0.5;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x70a4cc);

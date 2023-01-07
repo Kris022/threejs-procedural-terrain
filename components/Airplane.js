@@ -10,8 +10,8 @@ export default class Airplane {
     this.position = new THREE.Vector3(x, y, z);
 
     // Movement
-    this.forward = false;
-    this.backward = false;
+    this.up = false;
+    this.down = false;
     this.left = false;
     this.right = false;
 
@@ -21,6 +21,9 @@ export default class Airplane {
     this.currentTime = Date.now();
 
     this.speed = 0.1;
+    this.turnSpeed = 0.05;
+    this.maxSpeed = 0.2;
+    this.minSpeed = 0.05;
 
     const loader = new GLTFLoader();
 
@@ -44,14 +47,28 @@ export default class Airplane {
   update(deltaTime) {
     // Yaw the airplane left or right based on the left and right arrow keys
     if (this.left) {
-      this.mesh.rotation.y += 0.1;
+      this.mesh.rotation.y += this.turnSpeed;
     } else if (this.right) {
-      this.mesh.rotation.y -= 0.1;
+      this.mesh.rotation.y -= this.turnSpeed;
+    }
+
+    if (this.up) {
+      this.speed += 0.01;
+    }
+    else if (this.down) {
+      this.speed -= 0.01;
+    }
+
+    if (this.speed > this.maxSpeed) {
+      this.speed = this.maxSpeed;
+    }
+    if (this.speed < this.minSpeed) {
+      this.speed = this.minSpeed;
     }
 
     // Move the airplane forward based on its current orientation
-    this.mesh.position.x += Math.sin(this.mesh.rotation.y) * 0.1;
-    this.mesh.position.y += Math.sin(this.mesh.rotation.x) * 0.1;
-    this.mesh.position.z += Math.cos(this.mesh.rotation.y) * 0.1;
+    this.mesh.position.x += Math.sin(this.mesh.rotation.y) * this.speed;
+    this.mesh.position.y += Math.sin(this.mesh.rotation.x) * this.speed;
+    this.mesh.position.z += Math.cos(this.mesh.rotation.y) * this.speed;
   }
 }

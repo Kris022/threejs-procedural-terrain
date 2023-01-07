@@ -47,9 +47,9 @@ document.addEventListener("keydown", onKeyDown);
 document.addEventListener("keyup", onKeyUp);
 function onKeyDown(e) {
   if (e.key == "ArrowUp") {
-    player.forward = true;
+    player.up = true;
   } else if (e.key == "ArrowDown") {
-    player.backward = true;
+    player.down = true;
   } else if (e.key == "ArrowLeft") {
     player.left = true;
   } else if (e.key == "ArrowRight") {
@@ -59,9 +59,9 @@ function onKeyDown(e) {
 
 function onKeyUp(e) {
   if (e.key == "ArrowUp") {
-    player.forward = false;
+    player.up = false;
   } else if (e.key == "ArrowDown") {
-    player.backward = false;
+    player.down = false;
   } else if (e.key == "ArrowLeft") {
     player.left = false;
   } else if (e.key == "ArrowRight") {

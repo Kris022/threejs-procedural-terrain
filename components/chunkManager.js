@@ -10,8 +10,8 @@ export default class ChunkManager {
         chunk size 100 = offset 4.95
         chunk size 256 = offset 4.98
     */
-    this.chunkSize = 256;
-    this.noiseOffset = 4.98;
+    this.chunkSize = 100;
+    this.noiseOffset = 4.95;
     this.bumpScale = 25;
 
     this.chunkQueue = []; // Holds chunks to be built

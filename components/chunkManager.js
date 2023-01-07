@@ -78,6 +78,7 @@ export default class ChunkManager {
 
   processChunkQueue() {
     // Check if the queue is empty
+    // ERROR is the chunkQueue getting removed by shift?
     if (this.chunkQueue.length === 0) {
       return;
     }

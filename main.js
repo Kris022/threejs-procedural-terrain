@@ -22,7 +22,12 @@ function drawNoise(noiseMap, canvas) {
 }
 
 // ------------------------------------- Scene 3D -------------------------------------
-const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 1000);
+const camera = new THREE.PerspectiveCamera(
+  70,
+  window.innerWidth / window.innerHeight,
+  0.01,
+  1000
+);
 camera.position.y = 50;
 
 const scene = new THREE.Scene();
@@ -70,7 +75,9 @@ function onKeyUp(e) {
 }
 
 const controls = new OrbitControls(camera, renderer.domElement);
-controls.update();
+controls.target = player.mesh.position;
+controls.enablePan = false; // Disable panning
+controls.maxDistance = 15;
 
 const light = new THREE.DirectionalLight(0xffffff, 0.5);
 light.position.y = 50;
@@ -90,13 +97,17 @@ chunkManager.processChunkQueue();
 let currentTime = Date.now();
 
 function animate() {
-  requestAnimationFrame(animate);
+  controls.update();
+  chunkManager.manageChunks(player.mesh.position.x, player.mesh.position.y);
+  chunkManager.processChunkQueue();
+  
   let elapsedTime = Date.now() - currentTime;
   // Update the current time
   currentTime = Date.now();
-
+  
   player.update(elapsedTime);
-
+  
   renderer.render(scene, camera);
+  requestAnimationFrame(animate);
 }
 animate();

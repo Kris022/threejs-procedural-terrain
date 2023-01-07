@@ -22,7 +22,7 @@ export default class Airplane {
 
     this.speed = 0.1;
     this.turnSpeed = 0.05;
-    this.maxSpeed = 0.2;
+    this.maxSpeed = 0.4;
     this.minSpeed = 0.05;
 
     const loader = new GLTFLoader();

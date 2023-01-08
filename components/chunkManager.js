@@ -76,13 +76,14 @@ export default class ChunkManager {
     });
   }
 
+  // Spreads building of chunks over multiple frames
   processChunkQueue() {
     // Check if the queue is empty
-    //When length is 0 undefined
     try {
       if (this.chunkQueue.length === 0) {
         return;
       }
+      
     } catch (error) {
       return;
     }

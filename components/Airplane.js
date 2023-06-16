@@ -20,9 +20,9 @@ export default class Airplane {
 
     this.currentTime = Date.now();
 
-    this.speed = 0.1;
-    this.turnSpeed = 0.05;
-    this.maxSpeed = 0.4;
+    this.speed = 0.07;
+    this.turnSpeed = 0.01;
+    this.maxSpeed = 0.1;
     this.minSpeed = 0.05;
 
     const loader = new GLTFLoader();
@@ -44,7 +44,7 @@ export default class Airplane {
     return degrees * (pi / 180);
   }
 
-  update(deltaTime) {
+  update() {
     // Yaw the airplane left or right based on the left and right arrow keys
     if (this.left) {
       this.mesh.rotation.y += this.turnSpeed;

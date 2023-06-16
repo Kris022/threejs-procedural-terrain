@@ -79,7 +79,7 @@ controls.target = player.mesh.position;
 controls.enablePan = false; // Disable panning
 controls.maxDistance = 15;
 
-const light = new THREE.DirectionalLight(0xffffff, 0.7);
+const light = new THREE.DirectionalLight(0xffffff, 0.5);
 light.position.y = 50;
 light.position.x = 20;
 light.rotateX(15);
@@ -94,18 +94,14 @@ chunkManager.manageChunks();
 chunkManager.processChunkQueue();
 */
 
-let currentTime = Date.now();
 
 function animate() {
   controls.update();
   chunkManager.manageChunks(player.mesh.position.x, player.mesh.position.y);
   chunkManager.processChunkQueue();
   
-  let elapsedTime = Date.now() - currentTime;
-  // Update the current time
-  currentTime = Date.now();
-  
-  player.update(elapsedTime);
+  // Update the current time  
+  player.update();
   
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
